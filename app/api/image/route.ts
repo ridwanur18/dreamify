@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
         }
 
         return NextResponse.json({ imageUrl: base64Image });
-    } catch (err: any) {
+    } catch (err: unknown) {
         if (err instanceof Error) {
             console.error("Gemini Image Generation Error:", err.message);
         } else {
