@@ -24,3 +24,11 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.glow-hover:hover {
+  text-shadow:
+    0 0 4px #a855f7,
+    0 0 10px #9333ea,
+    0 0 20px #7e22ce,
+    0 0 30px #6b21a8;
+}

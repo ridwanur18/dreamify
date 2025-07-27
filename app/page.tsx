@@ -1,36 +1,151 @@
 'use client';
 
-import { useState } from "react";
+import React from "react";
 import Image from "next/image";
+import { Sparkles, Loader2 } from "lucide-react";
 
-export default function Home() {
-    const [entry, setEntry] = useState("");
+export default function HomePage() {
+    const [entry, setEntry] = React.useState("");
+    const [story, setStory] = React.useState("");
+    const [error, setError] = React.useState("");
+    const [loading, setLoading] = React.useState(false);
+    const [imageUrl, setImageUrl] = React.useState<string>("");
+
+    React.useEffect(() => {
+        console.log("Image URL:", imageUrl);
+    }, [imageUrl]);
+
+    async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        setError("");
+        setLoading(true);
+        setStory("");
+
+        if (!entry || entry.length < 5) {
+            setError("entry too short. please provide at least 5 characters.");
+            setLoading(false);
+            return;
+        }
+
+        try {
+            fetch("/api/generate", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ entry: entry.trim() }),
+            })
+                .then(async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        throw new Error(data.error || "Failed to generate story");
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    setStory(data.story);
+                    setLoading(false);
+                    generateImage(data.story);
+                });
+        } catch (error) {
+            setError("Failed to generate story. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const generateImage = async (story: string) => {
+        try {
+            const res = await fetch('/api/image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: story })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error || "Failed to generate image");
+            }
+            
+            setImageUrl(data.imageUrl);
+        } catch (err: any) {
+            console.error("Image Error:", err.message);
+            setError(err.message);
+        }
+    };
 
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 gap-8 bg-white dark:bg-black text-black dark:text-white">
-        <h1 className="text-4xl sm:text-5xl font-bold text-center">Dreamify</h1>
-        <p className="text-lg sm:text-xl text-center max-w-xl">
-          Turn your journal entries or dream thoughts into illustrated visual stories using AI.
-        </p>
+        <main className="min-h-screen pb-20 flex flex-col items-center justify-center p-6 bg-white dark:bg-black"
+                style={{
+                    backgroundImage: "linear-gradient(to bottom right, #1e3a8a, black, #3b0764)",
+        }}>
+            <h1 className="text-4xl font-bold mb-4 text-center">🌌 {'Dreamify'.split('').map((char, i) => (
+                <span
+                    key={i}
+                    className="inline-block transition-all duration-250 hover:scale-110 hover:text-violet-400 hover:shadow-inner ease-in-out glow-hover"
+                >
+                {char}
+                </span>
+            ))}</h1>
+            <p className="text-gray-600 mb-6 text-center max-w-lg">
+                Turn your dreams into stunning illustrated stories.
+            </p>
 
-        <textarea
-          className="w-full max-w-2xl h-40 p-4 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm sm:text-base"
-          placeholder="Type or paste your dream entry here..."
-          value={entry}
-          onChange={(e) => setEntry(e.target.value)}
-        />
 
-        <button
-          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-full transition-all disabled:opacity-50"
-          disabled={!entry.trim()}
-          onClick={() => {
-            // Here you’ll later call your story+image generation endpoint
-            alert("Generating story for:\n\n" + entry);
-          }}
-        >
-          Generate Story
-        </button>
-      </div>
+        {/*<div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 gap-8 bg-white dark:bg-black text-black dark:text-white">
+          <h1 className="text-4xl sm:text-5xl font-bold text-center">Dreamify ✨</h1>
+          <p className="text-lg sm:text-xl text-center max-w-xl">
+            Turn your journal entries or dream thoughts into illustrated visual stories using AI.
+          </p>*/}
+          
+            <form onSubmit={handleSubmit} className="flex flex-col items-center space-y-6"> 
+                <textarea
+                    className="w-150 max-w-2xl h-52 p-4 rounded-2xl backdrop-blur-md text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-blue-800 resize-none text-sm sm:text-base shadow-inner"
+                    placeholder="what did you dream about last night?"
+                    name="entry"
+                    value={entry}
+                    onChange={(e) => setEntry(e.target.value)}
+                />
+
+                <button
+                    type="submit"
+                    className="mt-4 backdrop-blur-xl flex items-center justify-center gap-2 min-w-[180px] px-6 py-3 rounded-full transition-all duration-200 ease-in-out hover:bg-white/5 disabled:opacity-50 shadow-md"
+                    disabled={loading || entry.length < 5}
+                >
+                    {loading ? (
+                    <>
+                        <Loader2 className="animate-spin h-5 w-5" />
+                        Generating...
+                        </>
+                    ) : (
+                        <>
+                        <Sparkles className="h-5 w-5" />
+                        Generate Story
+                        </>
+                    )}
+                </button>
+            </form>
+
+            {story && (
+                <div className="mt-8 max-w-2xl p-6 rounded-2xl backdrop-blur-md bg-white/10 dark:bg-white/5 shadow-lg border border-white/0 transition-all duration-300">
+                    <h2 className="text-lg font-semibold mb-3 text-center text-white/80 tracking-wide">Generated Story:</h2>
+                    <p className="text-sm sm:text-base text-white/90 leading-relaxed whitespace-pre-line">{story}</p>
+                </div>
+            )}
+          
+            {imageUrl && (
+                <div className="mt-6">
+                    <img
+                        src={imageUrl}
+                        alt="Generated Story Illustration"
+                        className="rounded-lg shadow-lg max-w-full"
+                    />
+                </div>
+            )}
+
+            {/*</div>*/}
+        </main>
     );
 }
 
