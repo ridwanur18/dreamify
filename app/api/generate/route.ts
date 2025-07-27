@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
         //const story = data?.[0]?.generated_text || "No story generated."
 
-        return NextResponse.json({ story: "This is a dummy story for testing."  })
+        return NextResponse.json({ story })
     } catch (error) {
         console.error("Full Error Object:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
