@@ -16,6 +16,7 @@ Do not mention that it's a dream or refer back to the original entry. Just tell 
 export async function POST(request: NextRequest) {
     try {
         const { entry } = await request.json();
+        console.log("Received entry:", entry);
 
         const response = await hf.chatCompletion({
             model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
 
         //const story = data?.[0]?.generated_text || "No story generated."
 
-        return NextResponse.json({ story })
+        return NextResponse.json({ story: "This is a dummy story for testing."  })
     } catch (error) {
         console.error("Full Error Object:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
