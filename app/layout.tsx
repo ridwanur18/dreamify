@@ -28,9 +28,7 @@ export default function RootLayout({
         <html lang="en" suppressHydrationWarning>
             <body className={`${inter.className} bg-white text-black dark:bg-[#0e0e0e] dark:text-white transition-colors duration-300`}>
                 <div className="min-h-screen flex flex-col">
-                {/* You can add a <Navbar /> here later if needed */}
                 <main className="flex-1">{children}</main>
-                {/* You can add a <Footer /> here later if needed */}
                 </div>
             </body>
         </html>
