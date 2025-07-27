@@ -1,38 +1,47 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { InferenceClient } from '@huggingface/inference';
+import { GoogleGenAI, Modality } from "@google/genai";
+import { NextRequest, NextResponse } from "next/server";
 
 
-const hf = new InferenceClient(process.env.HUGGINGFACE_API_KEY!);
-
-const SYSTEM_PROMPT = `You are a dream interpreter and creative storyteller. 
-You will receive a user's dream journal entry and your task is to turn it into a short, surreal, and imaginative story. 
-Make it vivid, strange, and poetic — like something out of a dream. 
-The story should be in the third person, use descriptive language, and capture the emotions or atmosphere of the dream.
-Do not mention that it's a dream or refer back to the original entry. Just tell the story. Make sure the story is short so that it can be used to generate an image.
-`
-
-
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
     try {
-        const { entry } = await request.json();
+        const { prompt } = await req.json();
 
-        const response = await hf.chatCompletion({
-            model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
-            messages: [
-                { role: 'system', content: SYSTEM_PROMPT },
-                { role: 'user', content: entry }
-            ],
-            max_tokens: 1024
-        })
+        if (!prompt) {
+            return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
+        }
 
-        const story = response.choices[0].message.content
+        const ai = new GoogleGenAI({
+        apiKey: process.env.GEMINI_API_KEY, 
+        });
 
-        //const story = data?.[0]?.generated_text || "No story generated."
+        const response = await ai.models.generateContent({
+        model: "gemini-2.0-flash-preview-image-generation",
+        contents: prompt,
+        config: {
+            responseModalities: [Modality.TEXT, Modality.IMAGE],
+        },
+        });
 
-        return NextResponse.json({ story })
-    } catch (error) {
-        console.error("Full Error Object:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+        const parts = response.candidates?.[0]?.content?.parts ?? [];
+
+        let base64Image = null;
+        for (const part of parts) {
+            if (part.inlineData?.mimeType?.startsWith("image/")) {
+                base64Image = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+                break;
+            }
+        }
+
+        if (!base64Image) {
+            return NextResponse.json({ error: "Image generation failed" }, { status: 500 });
+        }
+
+        return NextResponse.json({ imageUrl: base64Image });
+    } catch (err: any) {
+        if (err instanceof Error) {
+            console.error("Gemini Image Generation Error:", err.message);
+        } else {
+            console.error("Gemini Image Generation Error:", err);
+        }
     }
 }
