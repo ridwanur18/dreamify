@@ -1,7 +1,6 @@
 'use client';
 
 import React from "react";
-import Image from "next/image";
 import { Sparkles, Loader2 } from "lucide-react";
 
 export default function HomePage() {
@@ -69,9 +68,14 @@ export default function HomePage() {
             }
             
             setImageUrl(data.imageUrl);
-        } catch (err: any) {
-            console.error("Image Error:", err.message);
-            setError(err.message);
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                console.error("Image Error:", err.message);
+                setError(err.message);
+            } else {
+                console.error("Unknown error:", err);
+                setError("An unexpected error occurred.");
+            }
         }
     };
 
@@ -91,13 +95,6 @@ export default function HomePage() {
             <p className="text-gray-600 mb-6 text-center max-w-lg">
                 Turn your dreams into stunning illustrated stories.
             </p>
-
-
-        {/*<div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 gap-8 bg-white dark:bg-black text-black dark:text-white">
-          <h1 className="text-4xl sm:text-5xl font-bold text-center">Dreamify ✨</h1>
-          <p className="text-lg sm:text-xl text-center max-w-xl">
-            Turn your journal entries or dream thoughts into illustrated visual stories using AI.
-          </p>*/}
           
             <form onSubmit={handleSubmit} className="flex flex-col items-center space-y-6"> 
                 <textarea

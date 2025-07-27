@@ -1,4 +1,3 @@
-import { HfInference } from "@huggingface/inference";
 import { GoogleGenAI, Modality } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -43,44 +42,3 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
-
-
-
-
-
-
-
-
-
-/*
-const hf = new HfInference(process.env.HUGGINGFACE_API_KEY!);
-
-export async function POST(request: Request) {
-    try {
-        const { prompt } = await request.json();
-
-        if (!prompt) {
-            return NextResponse.json({ error: "Missing prompt" }, { status: 400 });
-        }
-
-        const image = await hf.textToImage({
-            provider: "nebius",
-            model: "black-forest-labs/FLUX.1-dev",
-            inputs: prompt,
-            parameters: { num_inference_steps: 5 },
-        });
-
-        // If the returned image is already a base64 string or a data URL, you can use it directly.
-        // Optionally, you can log or process the image string here.
-        console.log("Generated image:", image);
-
-        // If you need only the base64 part (without the prefix), you can extract it like this:
-        // const base64Only = image.split(',')[1];
-
-        return NextResponse.json({ imageUrl: image });
-    } catch (error: any) {
-        console.error("Image generation error:", error.message);
-        return NextResponse.json({ error: "Failed to generate image" }, { status: 500 });
-    }
-}
-    */

@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { HfInference } from '@huggingface/inference';
+import { InferenceClient } from '@huggingface/inference';
 
 
-const hf = new HfInference(process.env.HUGGINGFACE_API_KEY!);
+const hf = new InferenceClient(process.env.HUGGINGFACE_API_KEY!);
 
 const SYSTEM_PROMPT = `You are a dream interpreter and creative storyteller. 
 You will receive a user's dream journal entry and your task is to turn it into a short, surreal, and imaginative story. 
